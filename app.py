@@ -5,11 +5,10 @@ import os
 
 st.set_page_config(page_title="My Grocery Tracker", page_icon="🛒", layout="wide")
 
-# ====================== JOYFUL HEADER ======================
+# ====================== JOY HEADER ======================
 st.title("🛒 My Grocery Tracker")
 st.markdown("### Fresh finds, easy tracking! 🛍️✨")
 
-# Beautiful food images (your joy!)
 food_images = [
     "https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8",
     "https://images.unsplash.com/photo-1604719312566-8912e9c8a5d4",
@@ -17,7 +16,6 @@ food_images = [
     "https://images.unsplash.com/photo-1600585154340-be6161a56a9c",
     "https://images.unsplash.com/photo-1518845872607-9a6c6f3c4c3e"
 ]
-
 cols = st.columns(5)
 for i, url in enumerate(food_images):
     with cols[i % 5]:
@@ -43,9 +41,13 @@ def load_data():
 def save_data(df):
     df.to_csv(DATA_FILE, index=False)
 
-# SUPER SAFE INITIALIZATION (this fixes the bug)
-if "items" not in st.session_state or not isinstance(st.session_state.get("items"), pd.DataFrame):
+# FORCE CLEAN DATAFRAME EVERY TIME (this should finally kill the bug)
+if "items" not in st.session_state:
     st.session_state.items = load_data()
+else:
+    # If it's corrupted, reload it
+    if not isinstance(st.session_state.items, pd.DataFrame):
+        st.session_state.items = load_data()
 
 # ====================== APP ======================
 st.sidebar.header("Controls")
@@ -55,7 +57,7 @@ if st.sidebar.button("🗑️ Clear Entire List"):
     st.success("List cleared! 🎉")
     st.rerun()
 
-# Add item
+# Add new item
 col1, col2, col3 = st.columns([3, 1, 1])
 with col1:
     item = st.text_input("What do you need?", placeholder="Milk, Bananas...")
@@ -78,8 +80,12 @@ if st.button("➕ Add Item", type="primary"):
         st.success(f"✅ Added {item.strip().title()}")
         st.rerun()
 
-# Shopping List
+# ====================== DISPLAY LIST ======================
 st.subheader("Your Shopping List")
+
+# Extra safety check right before using it
+if not isinstance(st.session_state.items, pd.DataFrame):
+    st.session_state.items = load_data()
 
 if len(st.session_state.items) > 0:
     edited = st.data_editor(
@@ -109,4 +115,4 @@ if len(st.session_state.items) > 0:
 else:
     st.info("Your list is empty — add some items above! 🛍️")
 
-st.caption("💾 Auto-saved • Your grocery joy is safe now ❤️")
+st.caption("💾 Auto-saved • Joyful edition ❤️")
