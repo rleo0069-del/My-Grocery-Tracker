@@ -119,10 +119,10 @@ if len(df) > 0:
     c1.metric("Total Items", total)
     c2.metric("Remaining", total - bought)
     c3.metric("Bought", bought)
-    
-csv = df.to_csv(index=False).encode()
+
+    csv = df.to_csv(index=False).encode()
     st.download_button("📥 Export CSV", csv, f"grocery_{date.today()}.csv", "text/csv")
 else:
     st.info("Your list is empty — add some items above! 🛍️")
 
-st.caption("💾 Auto-saved • Finally working! ❤️")
+st.caption("💾 Auto-saved • Back to the fun version ❤️")
