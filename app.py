@@ -5,27 +5,6 @@ import os
 
 st.set_page_config(page_title="My Grocery Tracker", page_icon="🛒", layout="wide")
 
-# ====================== FOOD HEADER ======================
-st.title("🛒 My Grocery Tracker")
-st.markdown("### Fresh finds, easy tracking!")
-
-# Fun food images (public URLs - they load fast)
-food_images = [
-    "https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8",  # Shopping cart full
-    "https://images.unsplash.com/photo-1604719312566-8912e9c8a5d4",  # Fresh produce
-    "https://images.unsplash.com/photo-1542838132-92c53300491e",  # Market stall
-    "https://images.unsplash.com/photo-1600585154340-be6161a56a9c",  # Groceries on table
-    "https://images.unsplash.com/photo-1518845872607-9a6c6f3c4c3e"   # Colorful fruits
-]
-
-cols = st.columns(5)
-for i, url in enumerate(food_images):
-    with cols[i % 5]:
-        st.image(url, use_container_width=True)
-
-st.markdown("---")
-
-# ====================== DATA & APP ======================
 DATA_FILE = "grocery_list.csv"
 
 def load_data():
@@ -45,18 +24,33 @@ def load_data():
 def save_data(df):
     df.to_csv(DATA_FILE, index=False)
 
-if "items" not in st.session_state:
+# Safe initialization
+if "items" not in st.session_state or not isinstance(st.session_state.items, pd.DataFrame):
     st.session_state.items = load_data()
 
-if not isinstance(st.session_state.items, pd.DataFrame):
-    st.session_state.items = load_data()
+st.title("🛒 My Grocery Tracker")
+st.markdown("### Fresh finds, easy tracking! 🛍️")
+
+# Fun food banner
+food_images = [
+    "https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8",
+    "https://images.unsplash.com/photo-1604719312566-8912e9c8a5d4",
+    "https://images.unsplash.com/photo-1542838132-92c53300491e",
+    "https://images.unsplash.com/photo-1600585154340-be6161a56a9c"
+]
+cols = st.columns(4)
+for i, img in enumerate(food_images):
+    with cols[i]:
+        st.image(img, use_container_width=True)
+
+st.markdown("---")
 
 # Sidebar
 st.sidebar.header("Controls")
 if st.sidebar.button("🗑️ Clear Entire List"):
     st.session_state.items = pd.DataFrame(columns=["Item", "Quantity", "Category", "Added", "Bought"])
     save_data(st.session_state.items)
-    st.success("List cleared!")
+    st.success("✅ List cleared!")
     st.rerun()
 
 # Add item
@@ -82,7 +76,7 @@ if st.button("➕ Add Item", type="primary"):
         st.success(f"✅ Added {item.strip().title()}")
         st.rerun()
 
-# Shopping list
+# Display list
 st.subheader("Your Shopping List")
 
 if len(st.session_state.items) > 0:
@@ -91,8 +85,8 @@ if len(st.session_state.items) > 0:
         hide_index=True,
         column_config={
             "Bought": st.column_config.CheckboxColumn("Bought", default=False),
-            "Added": st.column_config.DateColumn("Added", disabled=True),
-            "Quantity": st.column_config.NumberColumn("Qty", min_value=1),
+            "Added": st.column_config.DateColumn(disabled=True),
+            "Quantity": st.column_config.NumberColumn(min_value=1),
         },
         use_container_width=True,
     )
@@ -102,18 +96,18 @@ if len(st.session_state.items) > 0:
         save_data(edited)
 
     total = len(st.session_state.items)
-    bought_count = int(st.session_state.items["Bought"].sum())
+    bought = int(st.session_state.items["Bought"].sum())
     c1, c2, c3 = st.columns(3)
-    c1.metric("Total Items", total)
-    c2.metric("Remaining", total - bought_count)
-    c3.metric("Bought", bought_count)
+    c1.metric("Total", total)
+    c2.metric("Remaining", total - bought)
+    c3.metric("Bought", bought)
 
     csv = st.session_state.items.to_csv(index=False).encode()
     st.download_button("📥 Export CSV", csv, f"grocery_{date.today()}.csv", "text/csv")
 else:
-    st.info("Your list is empty — add some items above! 🛍️")
+    st.info("List is empty — add items above! 🛍️")
 
-st.caption("💾 Everything saves automatically • Made with ❤️")
+st.caption("💾 Auto-saved • Refresh works reliably now")
 
 # Nice footer
 st.caption("Made with ❤️ by ROSE using Streamlit • Data saved locally")
